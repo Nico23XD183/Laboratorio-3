@@ -1,0 +1,84 @@
+import java.io.*;
+import java.util.*;
+
+public class Experimentacion1 {
+
+    public static void main(String[] args) {
+        ArrayList<Movie> dataset = cargarPeliculasDesdeCSV("movies1000.csv");
+
+        if (dataset.isEmpty()) {
+            System.out.println(" No se pudieron cargar películas desde el archivo CSV.");
+            return;
+        }
+
+        System.out.println("✅ Películas cargadas: " + dataset.size());
+        System.out.println("Iniciando experimento 1: Análisis de algoritmos de ordenamiento...");
+        System.out.println();
+
+        int[] tamaños = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
+
+        System.out.println("Tamaño\tInsertionSort [ms]\tMergeSort [ms]\tRadixSort [ms]");
+
+        for (int n : tamaños) {
+            // Tomar subconjunto de n películas
+            ArrayList<Movie> subset = new ArrayList<>(dataset.subList(0, n));
+
+            // InsertionSort
+            MovieCatalog cat1 = new MovieCatalog(new ArrayList<>(subset));
+            long inicio = System.nanoTime();
+            cat1.sortByAlgorithm("insertionSort", "rating");
+            long fin = System.nanoTime();
+            double tInsertion = (fin - inicio) / 1_000_000.0; // ms
+
+            // MergeSort
+            MovieCatalog cat2 = new MovieCatalog(new ArrayList<>(subset));
+            inicio = System.nanoTime();
+            cat2.sortByAlgorithm("mergeSort", "rating");
+            fin = System.nanoTime();
+            double tMerge = (fin - inicio) / 1_000_000.0; // ms
+
+            // RadixSort (por año)
+            MovieCatalog cat3 = new MovieCatalog(new ArrayList<>(subset));
+            inicio = System.nanoTime();
+            cat3.sortByAlgorithm("radixSort", "year");
+            fin = System.nanoTime();
+            double tRadix = (fin - inicio) / 1_000_000.0; // ms
+
+            // Mostrar resultados
+            System.out.printf("%d\t%.3f\t\t%.3f\t\t%.3f%n", n, tInsertion, tMerge, tRadix);
+        }
+
+        System.out.println("\n✅ Experimento completado correctamente.");
+    }
+
+    public static ArrayList<Movie> cargarPeliculasDesdeCSV(String nombreArchivo) {
+        ArrayList<Movie> lista = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(nombreArchivo))) {
+            String linea = br.readLine(); // saltar encabezado
+
+            while ((linea = br.readLine()) != null) {
+                // Asumimos formato: title,director,genre,year,rating
+                String[] datos = linea.split(",");
+
+                if (datos.length >= 5) {
+                    try {
+                        String title = datos[0].trim();
+                        String director = datos[1].trim();
+                        String genre = datos[2].trim();
+                        int year = Integer.parseInt(datos[3].trim());
+                        double rating = Double.parseDouble(datos[4].trim());
+
+                        lista.add(new Movie(title, director, genre, year, rating));
+                    } catch (Exception e) {
+                        // Ignorar líneas inválidas
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.out.println(" Error al leer el archivo: " + e.getMessage());
+        }
+
+        return lista;
+    }
+}
