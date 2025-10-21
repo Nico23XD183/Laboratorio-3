@@ -1,0 +1,24 @@
+import java.util.*;
+import java.io.*;
+
+ class Movie {
+    public String title;
+    public String director;
+    public String genre;
+    public int releaseYear;
+     public double rating;
+
+    public Movie(String title, String director, String genre, int releaseYear, double rating){
+
+        this.title = title;
+        this.director = director;
+        this.genre = genre;
+        this.releaseYear = releaseYear;
+        this.rating = rating;
+    }
+
+    @Override
+    public String toString(){
+        return String.format("%s (%d) - %s - %.1f", title, releaseYear, director, rating);
+    }
+}
