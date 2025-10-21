@@ -1,0 +1,96 @@
+import java.io.*;
+import java.util.*;
+
+public class Experimentacion2 {
+
+    public static void main(String[] args) {
+        ArrayList<Movie> dataset = cargarPeliculasDesdeCSV("movies1000.csv");
+
+        if (dataset.isEmpty()) {
+            System.out.println("No se pudieron cargar películas desde el archivo CSV.");
+            return;
+        }
+
+     
+        String[] directores = {
+            "Christopher Nolan",
+            "Quentin Tarantino",
+            "David Fincher",
+            "Steven Spielberg",
+            "Martin Scorsese"
+        };
+
+        int repeticiones = 1000; 
+        int[] tamaños = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000};
+
+        System.out.println("Tamaño\tBúsqueda Lineal [µs]\tBúsqueda Binaria [µs]");
+
+        for (int n : tamaños) {
+            ArrayList<Movie> subset = new ArrayList<>(dataset.subList(0, n));
+
+            double totalLineal = 0;
+            double totalBinaria = 0;
+
+            for (String dir : directores) {
+             
+                MovieCatalog catLineal = new MovieCatalog(new ArrayList<>(subset));
+
+                long inicio = System.nanoTime();
+                for (int i = 0; i < repeticiones; i++) {
+                    catLineal.getMoviesByDirector(dir);
+                }
+                long fin = System.nanoTime();
+                double tiempoLineal = (fin - inicio) / (double) repeticiones; 
+                totalLineal += tiempoLineal;
+
+                MovieCatalog catBinaria = new MovieCatalog(new ArrayList<>(subset));
+                catBinaria.sortByAlgorithm("mergeSort", "director"); 
+
+                inicio = System.nanoTime();
+                for (int i = 0; i < repeticiones; i++) {
+                    catBinaria.getMoviesByDirector(dir);
+                }
+                fin = System.nanoTime();
+                double tiempoBinario = (fin - inicio) / (double) repeticiones;
+                totalBinaria += tiempoBinario;
+            }
+
+            double promLineal = (totalLineal / directores.length) / 1000.0; 
+            double promBinaria = (totalBinaria / directores.length) / 1000.0; 
+
+            System.out.printf("%d\t%.3f\t\t\t%.3f%n", n, promLineal, promBinaria);
+        }
+
+        System.out.println(" Experimento 2 completado correctamente.");
+    }
+
+    public static ArrayList<Movie> cargarPeliculasDesdeCSV(String nombreArchivo) {
+        ArrayList<Movie> lista = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(nombreArchivo))) {
+            String linea = br.readLine(); // saltar encabezado
+
+            while ((linea = br.readLine()) != null) {
+                String[] datos = linea.split(",");
+
+                if (datos.length >= 5) {
+                    try {
+                        String title = datos[0].trim();
+                        String director = datos[1].trim();
+                        String genre = datos[2].trim();
+                        int year = Integer.parseInt(datos[3].trim());
+                        double rating = Double.parseDouble(datos[4].trim());
+
+                        lista.add(new Movie(title, director, genre, year, rating));
+                    } catch (Exception e) {
+                        // Ignorar líneas defectuosas
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error al leer el archivo: " + e.getMessage());
+        }
+
+        return lista;
+    }
+}
